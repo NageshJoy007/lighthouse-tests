@@ -8,7 +8,7 @@ function launchChromeAndRunLighthouse(url, opts, config) {
     return chromeLauncher.launch(opts).then(chrome => {
         opts.port = chrome.port;
         return lighthouse(url, opts, config).then(results => {
-            return chrome.kill().then(() => results)
+            return chrome.kill().then(() => results.lhr)
       
         });  
     });
@@ -20,12 +20,15 @@ const opts = {
 
 // Usage:
 launchChromeAndRunLighthouse('https://facebook.com', opts, config).then(results => {
-    fs.writeFile('reports/LoginPage.html', reportGenerator.generateReport(results.lhr, 'html'), (err) => {
+    const htmlReport = reportGenerator.generateReport(results,'html')
+    const jsonReport = reportGenerator.generateReport(results,'json')
+    
+    fs.writeFile('reports/LoginPage.html', htmlReport, (err) => {
         if (err) {
             console.error(err);
         }
     });
-    fs.writeFile('reports/LoginPage.json', reportGenerator.generateReport(results.lhr, 'json'), (err) => {
+    fs.writeFile('reports/LoginPage.json', jsonReport, (err) => {
         if (err) {
             console.error(err);
         }
