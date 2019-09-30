@@ -4,6 +4,8 @@ Run Google Lighthouse programmatically and generate reports to measure performan
 ### What is Lighthouse?
 [Google Lighthouse](https://developers.google.com/web/tools/lighthouse/) is an open-source, automated tool for improving the quality of web pages. It has audits for performance, accessibility, best practices, seo, and progressive web apps.
 
+<img src ="https://developers.google.com/web/progressive-web-apps/images/pwa-lighthouse.png" height = "110">
+
 ### Setup 
 Install node via `brew install node`  Or download [Node.js](https://nodejs.org/en/download/)
 
