@@ -15,11 +15,11 @@ function launchChromeAndRunLighthouse(url, opts, config) {
 }
 
 const opts = {
-       chromeFlags: ['--disable-mobile-emulation']
+       chromeFlags: ['--headless','--disable-mobile-emulation','--no-sandbox', '--disable-setuid-sandbox']
 };
 
 // Usage:
-launchChromeAndRunLighthouse('https://facebook.com', opts, config).then(results => {
+launchChromeAndRunLighthouse('https://www.macmillaneducation.com.au/account/login', opts, config).then(results => {
     const htmlReport = reportGenerator.generateReport(results,'html')
     const jsonReport = reportGenerator.generateReport(results,'json')
     
@@ -34,4 +34,3 @@ launchChromeAndRunLighthouse('https://facebook.com', opts, config).then(results 
         }
     });
 });
-
