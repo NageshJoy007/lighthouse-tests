@@ -14,9 +14,9 @@ Do `npm install` to download all project dependencies
 ### Run Tests
 `node <filename.js>`
 
-eg: `node lighthouse-test.js`
+eg: `node lighthouse-test.js` - It will run a test against a single url
+
+eg: `node lighthouse-puppeteer-test.js` - It will run a test against multiple urls with in a journey by interacting with page elements using puppeeteer and will send a slack alert in case of test fail
 
 ### Output
-[HTML Report](./reports/LoginPage.html) sample
-
-[JSON Report](./reports/LoginPage.json) sample
+./reports folder -  HTML, JSON Reports 

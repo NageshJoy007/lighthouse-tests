@@ -2,6 +2,7 @@ const chromeLauncher = require('chrome-launcher');
 const puppeteer = require('puppeteer');
 const lighthouse = require('lighthouse');
 const config = require('lighthouse/lighthouse-core/config/lr-desktop-config.js');
+
 const reportGenerator = require('lighthouse/lighthouse-core/report/report-generator');
 const request = require('request');
 const util = require('util');
@@ -10,6 +11,9 @@ const sleep = seconds =>
     new Promise(resolve => setTimeout(resolve, (seconds || 1) * 1000));
 let scoresBelowBaseline=false;
 let assert = require('assert');
+
+
+const MY_SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/<webhooktoken>';
 
 
 const app_name = "MacEdAu";
@@ -40,28 +44,34 @@ const app_name = "MacEdAu";
     const {webSocketDebuggerUrl} = JSON.parse(resp.body);
     const browser = await puppeteer.connect({browserWSEndpoint: webSocketDebuggerUrl});
 
+
     // Macmillan User WelcomePage
     page = (await browser.pages())[0];
     await page.setViewport({width: 1200, height: 900});
     await page.goto(loginURL, {waitUntil: 'networkidle2'});
     await sleep(4);
-    await runLighthouseForURL(page.url(), opts, "LoginPage").catch( e => {
-        console.error("LoginPage", e);
-    });
-    await sleep(2);
-    await page.type('[id="customer_email"]', 'nagesh.agiletester@gmail.com');
-    await page.type('[id="customer_password"]', 'Macmillan@175');
+    await page.type('[id="customer_email"]', 'youremailid');
+    await page.type('[id="customer_password"]', 'yourpassword');
     await page.evaluate(() => {
         document.querySelector('.button-primary.form-action--submit').click();
     });
-    await page.evaluate(() => {
-        document.querySelector('a[href="/pages/about-us"]').click();
-    });
     await page.waitForNavigation({waitUntil: 'networkidle2'});
-    await sleep(4);
-    await runLighthouseForURL(page.url(), opts, "AboutUsPage").catch( e => {
-        console.error("WelcomePage", e);
+    await runLighthouseForURL(page.url(), opts, "WelcomePage");
+
+    // Search Results Page
+    await page.type('[name="q"]', '9781420240238');
+    await page.evaluate(() => {
+        document.querySelector('[type="submit"]').click();
     });
+    await page.waitForNavigation();
+    await runLighthouseForURL(page.url(), opts, "Search Results Page");
+
+    // Product Details Page
+    await page.evaluate(() => {
+        document.querySelector('.productitem--image').click();
+    });
+    await page.waitForNavigation();
+    await runLighthouseForURL(page.url(), opts, "Product Details Page");
 
     //  user logout
     await page.goto(logoutURL, {waitUntil: 'networkidle2'});
@@ -145,6 +155,32 @@ async function runLighthouseForURL(pageURL, opts, reportName) {
         if (e !== BreakException) throw e;
     }
    
+
+    if (slackArray.length) {
+        request.post(MY_SLACK_WEBHOOK_URL, {
+                    json: {
+                        attachments: [
+                            {
+                                pretext: `${SlackHeadline}`,
+                                fallback: 'Nothing to show here',
+                                color: "#ffdb8e",
+                                fields: slackArray,
+                                "footer": `Lighthouse Tests | ${reportName}`,
+                                "footer_icon": "https://developers.google.com/web/progressive-web-apps/images/pwa-lighthouse.png"
+                            }
+                        ]
+                    }
+        }, (error, res, body) => {
+        if (error) {
+            console.error(error)
+            return
+        }
+        console.log(`statusCode: ${res.statusCode}`)
+        console.log(body)
+        })
+        scoresBelowBaseline = true;
+        console.log("Slack alert sent coz scores below baseline");
+    }
 
     
      
