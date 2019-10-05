@@ -55,11 +55,11 @@ const app_name = "MacEdAu";
         document.querySelector('.button-primary.form-action--submit').click();
     });
     await page.evaluate(() => {
-        document.querySelector('.site-logo').click();
+        document.querySelector('a[href="/pages/about-us"]').click();
     });
     await page.waitForNavigation({waitUntil: 'networkidle2'});
     await sleep(4);
-    await runLighthouseForURL(page.url(), opts, "WelcomePage").catch( e => {
+    await runLighthouseForURL(page.url(), opts, "AboutUsPage").catch( e => {
         console.error("WelcomePage", e);
     });
 
