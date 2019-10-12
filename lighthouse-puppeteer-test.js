@@ -1,8 +1,6 @@
-const chromeLauncher = require('chrome-launcher');
 const puppeteer = require('puppeteer');
 const lighthouse = require('lighthouse');
 const config = require('lighthouse/lighthouse-core/config/lr-desktop-config.js');
-
 const reportGenerator = require('lighthouse/lighthouse-core/report/report-generator');
 const request = require('request');
 const util = require('util');
@@ -13,7 +11,7 @@ let scoresBelowBaseline=false;
 let assert = require('assert');
 
 
-const MY_SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/<webhooktoken>';
+const MY_SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/<webhookKey>';
 
 
 const app_name = "MacEdAu";
@@ -24,39 +22,39 @@ const app_name = "MacEdAu";
     const loginURL = 'https://www.macmillaneducation.com.au/account/login';
     const logoutURL = 'https://www.macmillaneducation.com.au/account/logout';
 
-    const opts = {
-        logLevel: 'info',
-        output: 'json',
-        disableDeviceEmulation: true,
-        defaultViewport: {
-            width: 1200,
-            height: 900
-        },
-        chromeFlags: ['--headless','--disable-mobile-emulation','--no-sandbox', '--disable-setuid-sandbox']
-    };
+    const PORT = 8041;
+    const opts = {port: PORT}
 
-// Launch chrome using chrome-launcher
-    const chrome = await chromeLauncher.launch(opts);
-    opts.port = chrome.port;
-
-// Connect to it using puppeteer.connect().
-    const resp = await util.promisify(request)(`http://localhost:${opts.port}/json/version`);
-    const {webSocketDebuggerUrl} = JSON.parse(resp.body);
-    const browser = await puppeteer.connect({browserWSEndpoint: webSocketDebuggerUrl});
+// Launch chrome using puppeteer
+      
+    const browser = await puppeteer.launch({
+      args: [`--remote-debugging-port=${PORT}`,`--no-sandbox`, `--disable-setuid-sandbox`, `--disable-gpu`],
+      // Optional, if you want to see the tests in action.
+      headless: true,
+      defaultViewport : {
+        width : 1200,
+        height: 900,
+        isMobile : false
+      },
+      // slowMo: 50,
+      devtools: true
+    });
 
 
-    // Macmillan User WelcomePage
-    page = (await browser.pages())[0];
-    await page.setViewport({width: 1200, height: 900});
+// Macmillan User WelcomePage
+    console.log("starting with tests")
+    page = await browser.newPage();
     await page.goto(loginURL, {waitUntil: 'networkidle2'});
     await sleep(4);
+    await runLighthouseForURL(page.url(), opts, "Login Page");
     await page.type('[id="customer_email"]', 'youremailid');
     await page.type('[id="customer_password"]', 'yourpassword');
     await page.evaluate(() => {
         document.querySelector('.button-primary.form-action--submit').click();
     });
     await page.waitForNavigation({waitUntil: 'networkidle2'});
-    await runLighthouseForURL(page.url(), opts, "WelcomePage");
+    console.log(page.url())
+    await runLighthouseForURL(page.url(), opts, "Welcome Page");
 
     // Search Results Page
     await page.type('[name="q"]', '9781420240238');
@@ -66,20 +64,24 @@ const app_name = "MacEdAu";
     await page.waitForNavigation();
     await runLighthouseForURL(page.url(), opts, "Search Results Page");
 
-    // Product Details Page
+// Product Details Page
     await page.evaluate(() => {
         document.querySelector('.productitem--image').click();
     });
     await page.waitForNavigation();
+     console.log(page.url())
     await runLighthouseForURL(page.url(), opts, "Product Details Page");
 
-    //  user logout
+
+//  User logout
     await page.goto(logoutURL, {waitUntil: 'networkidle2'});
 
-    await browser.disconnect();
-    await chrome.kill();
+//Close browser
+    await page.close();
+    await browser.close();
 
 
+//Asert on scores
     try {
         assert.equal(scoresBelowBaseline, false, 'One of the scores was found below baseline. Failing test');
     } catch (error) {
@@ -114,12 +116,13 @@ async function runLighthouseForURL(pageURL, opts, reportName) {
     console.log(scores);
 
     let baselineScores = {
-        "Performance": 0.50,
-        "Accessibility": 0.60,
-        "Best Practices": 0.60,
-        "SEO": 0.60
+        "Performance": 0.90,
+        "Accessibility": 0.90,
+        "Best Practices": 0.90,
+        "SEO": 0.90
     };
 
+    // Generate reports 
     fs.writeFile('reports/ReportHTML-' + reportNameForFile + '.html', html, (err) => {
         if (err) {
             console.error(err);
@@ -155,9 +158,9 @@ async function runLighthouseForURL(pageURL, opts, reportName) {
         if (e !== BreakException) throw e;
     }
    
-
+    // Sending alerts on slack in case of low scores/ test failure
     if (slackArray.length) {
-        request.post(MY_SLACK_WEBHOOK_URL, {
+        request.post( MY_SLACK_WEBHOOK_URL, {
                     json: {
                         attachments: [
                             {

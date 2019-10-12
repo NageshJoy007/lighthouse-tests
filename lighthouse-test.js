@@ -23,12 +23,12 @@ launchChromeAndRunLighthouse('https://www.macmillaneducation.com.au/account/logi
     const htmlReport = reportGenerator.generateReport(results,'html')
     const jsonReport = reportGenerator.generateReport(results,'json')
     
-    fs.writeFile('reports/LoginPage.html', htmlReport, (err) => {
+    fs.writeFile('reports/ReportHTML-LoginPage.html', htmlReport, (err) => {
         if (err) {
             console.error(err);
         }
     });
-    fs.writeFile('reports/LoginPage.json', jsonReport, (err) => {
+    fs.writeFile('reports/ReportJSON-LoginPage.json', jsonReport, (err) => {
         if (err) {
             console.error(err);
         }
