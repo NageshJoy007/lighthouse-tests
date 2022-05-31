@@ -19,8 +19,8 @@ const app_name = "MacEdAu";
 
 (async () => {
 
-    const loginURL = 'https://www.macmillaneducation.com.au/account/login';
-    const logoutURL = 'https://www.macmillaneducation.com.au/account/logout';
+    const loginURL = 'https://macmillan-caribbean.com/account/login';
+    const logoutURL = 'https://macmillan-caribbean.com//account/logout';
 
     const PORT = 8041;
     const opts = {port: PORT}
@@ -57,7 +57,7 @@ const app_name = "MacEdAu";
     await runLighthouseForURL(page.url(), opts, "Welcome Page");
 
     // Search Results Page
-    await page.type('[name="q"]', '9781420240238');
+    await page.type('[name="q"]', '9781380050274');
     await page.evaluate(() => {
         document.querySelector('[type="submit"]').click();
     });
