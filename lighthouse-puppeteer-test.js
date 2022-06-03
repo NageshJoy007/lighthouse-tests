@@ -14,13 +14,13 @@ let assert = require('assert');
 const MY_SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/<webhookKey>';
 
 
-const app_name = "MacEdAu";
+const app_name = "YourAppName";
 
 
 (async () => {
 
-    const loginURL = 'https://macmillan-caribbean.com/account/login';
-    const logoutURL = 'https://macmillan-caribbean.com//account/logout';
+    const loginURL = 'https://yourwesite.com/account/login';
+    const logoutURL = 'https://yourwesite.com/account/logout';
 
     const PORT = 8041;
     const opts = {port: PORT}
@@ -41,7 +41,7 @@ const app_name = "MacEdAu";
     });
 
 
-// Macmillan User WelcomePage
+//  User WelcomePage
     console.log("starting with tests")
     page = await browser.newPage();
     await page.goto(loginURL, {waitUntil: 'networkidle2'});
@@ -56,7 +56,7 @@ const app_name = "MacEdAu";
     console.log(page.url())
     await runLighthouseForURL(page.url(), opts, "Welcome Page");
 
-    // Search Results Page
+//  Search Results Page
     await page.type('[name="q"]', '9781380050274');
     await page.evaluate(() => {
         document.querySelector('[type="submit"]').click();
@@ -64,7 +64,7 @@ const app_name = "MacEdAu";
     await page.waitForNavigation();
     await runLighthouseForURL(page.url(), opts, "Search Results Page");
 
-// Product Details Page
+//  Product Details Page
     await page.evaluate(() => {
         document.querySelector('.productitem--image').click();
     });
@@ -76,14 +76,14 @@ const app_name = "MacEdAu";
 //  User logout
     await page.goto(logoutURL, {waitUntil: 'networkidle2'});
 
-//Close browser
+//  Close browser
     await page.close();
     await browser.close();
 
 
-//Asert on scores
+//  Asert on scores
     try {
-        assert.equal(scoresBelowBaseline, false, 'One of the scores was found below baseline. Failing test');
+        assert.strictEqual(scoresBelowBaseline, false, 'One of the scores was found below baseline. Failing test');
     } catch (error) {
         console.error('Failing Test: One of the scores was found below baseline. Failing test');
         process.exit(1);
@@ -97,6 +97,14 @@ const app_name = "MacEdAu";
 
 
 async function runLighthouseForURL(pageURL, opts, reportName) {
+
+    var folder = `${__dirname}/reports`;
+  
+    if (!fs.existsSync(folder)){
+    fs.mkdirSync(folder);
+  
+    console.log('reports folder created successfully.');
+    }
 
     const reportNameForFile = reportName.replace(/\s/g, '');
 
@@ -122,7 +130,7 @@ async function runLighthouseForURL(pageURL, opts, reportName) {
         "SEO": 0.90
     };
 
-    // Generate reports 
+//  Generate reports 
     fs.writeFile('reports/ReportHTML-' + reportNameForFile + '.html', html, (err) => {
         if (err) {
             console.error(err);
@@ -158,7 +166,7 @@ async function runLighthouseForURL(pageURL, opts, reportName) {
         if (e !== BreakException) throw e;
     }
    
-    // Sending alerts on slack in case of low scores/ test failure
+//  Sending alerts on slack in case of low scores/ test failure
     if (slackArray.length) {
         request.post( MY_SLACK_WEBHOOK_URL, {
                     json: {

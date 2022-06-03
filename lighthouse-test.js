@@ -19,7 +19,13 @@ const opts = {
 };
 
 // Usage:
-launchChromeAndRunLighthouse('https://www.macmillaneducation.com.au/account/login', opts, config).then(results => {
+launchChromeAndRunLighthouse('https://macmillan-caribbean.com//account/login', opts, config).then(results => {
+    var folder = `${__dirname}/reports`;
+  
+    if (!fs.existsSync(folder)){
+    fs.mkdirSync(folder);
+    console.log('reports folder created successfully.');
+    }
     const htmlReport = reportGenerator.generateReport(results,'html')
     const jsonReport = reportGenerator.generateReport(results,'json')
     
