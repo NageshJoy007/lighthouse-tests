@@ -19,7 +19,7 @@ const opts = {
 };
 
 // Usage:
-launchChromeAndRunLighthouse('https://macmillan-caribbean.com//account/login', opts, config).then(results => {
+launchChromeAndRunLighthouse('https://yourwesite.com/account/login', opts, config).then(results => {
     var folder = `${__dirname}/reports`;
   
     if (!fs.existsSync(folder)){
